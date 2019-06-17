@@ -1,0 +1,42 @@
+db.ROZMOWA.aggregate([{
+	"$match": {
+		"$and": [{
+			"Pracownik.Dzial.Nazwa_Dzialu": { 
+				$in: [ "IT","HR","Marketing" ] 
+			}
+		}, 
+		{
+			"Ocena.Wartosc": {
+				"$gt": db.ROZMOWA.aggregate([{
+					"$group": {
+						"_id": null,
+						"srednia": {
+							"$avg": "$Ocena.Wartosc"
+						}
+					}
+				}]).map(function(u) { return u.srednia })[0]
+			}
+		}
+		]}
+	}, 
+	{
+		"$group": {
+			"_id": {
+				"Imie pracownika": "$Pracownik.Imie",
+				"Nazwisko pracownika": "$Pracownik.Nazwisko",
+				"Imie klienta": "$Klient.Imie",
+				"Nazwisko klienta": "$Klient.Nazwisko"
+			},
+			"Rozmowa": {
+				"$sum": 1
+			}
+		}
+	},
+	{
+		"$sort": {
+			"Rozmowa": -1
+		}
+	},
+	{
+		"$limit": 100
+}])
